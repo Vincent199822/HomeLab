@@ -1,0 +1,156 @@
+# HomeLab
+192.168.146.129
+
+P1 - 2001 P2 - 2002 A1 - 2003
+A2 - 2004 D1 - 2006 D2 - 2007
+R4 - 2009 R3 - 2010 R2 - 2011
+R1 - 2012 I3 - 2013 I2 - 2014
+I1 - 2015 I4 - 2016
+
+
+!!@R4 CONFIG R4
+conf t
+hostname R4
+ enable secret pass
+ service password-encryption
+ no logging console
+ no ip domain-lookup
+
+int e1/2
+ no shut
+ ip add 10.1.1.10 255.255.255.252
+
+int e1/0
+ no shut
+ ip add 10.1.4.5 255.255.255.252
+
+int e1/1
+ no shut
+ ip add 10.1.4.9 255.255.255.252
+do sh ip int brief | ex una
+
+!!!!@D1
+Conf t
+hostname D1
+ enable secret pass
+ service password-encryption
+ no logging cons
+ no ip domain-lookup
+ line cons 0
+ login
+ password pass
+ exec-timeout 0 0
+ line vty 0 4
+ password pass
+ login
+ exec -timeout 0 0 
+
+int e1/1
+ ip add 10.1.4.6 255.255.255.252
+ no shut
+int vlan 10
+ ip add 10.2.1.1 255.255.255.252
+ no shut
+int vlan 20
+ ip add 10.2.2.1 255.255.255.252
+ no shut
+int vlan 100
+ ip add 192.168.1.129 255.255.255.128
+ no shut
+do sh ip int brief | ex una
+
++++@D2
+Conf t
+hostname D2
+ enable secret pass
+ service password-encryption
+ no logging cons
+ no ip domain-lookup
+ line cons 0
+ login
+ password pass
+ exec-timeout 0 0
+ line vty 0 4
+ password pass
+ login
+exec-timeout 0 0 
+
+int e1/1
+ ip add 10.1.4.10 255.255.255.252
+ no shut
+int vlan 10
+ ip add 10.2.1.2 255.255.255.252
+ no shut
+int vlan 20
+ ip add 10.2.2.2 255.255.255.252
+ no shut
+int vlan 100
+ ip add 192.168.1.130 255.255.255.128
+ no shut
+do sh ip int brief | ex una
+
++++++@A1
+Conf t
+hostname A1
+ enable secret pass
+ service password-encryption
+ no logging cons
+ no ip domain-lookup
+ line cons 0
+ exit
+ line vty 0 4
+ exit
+
+int vlan 100
+ ip add 192.168.1.131 255.255.255.128
+ no shut
+
++++++@A2
+Conf t
+hostname A2
+ enable secret pass
+ service password-encryption
+ no logging cons
+ no ip domain-lookup
+ line cons 0
+ exit
+ line vty 0 4
+exit
+
+int vlan 100
+ ip add 192.168.1.132 255.255.255.128
+ no shut
+====================================
++++++@P1 == GIVE IP ADD TO P1, P2 VIA DHCP SERVER ON D1,D2 USING LOAD BALANCE
++++ D1: will give 101-199
+
+conf t
+vlan 10
+ name homevlanmay12
+exit
+ ip dhcp exclude-add 10.2.1.200 10.2.1.254
+ ip dhcp pool vlan10
+ network 10.2.1.0 255.255.255.0
+ default-router 10.2.1.1
+ domain-name rivanit.com
+ dns-server 8.8.8.8
+ option 150 ip 1.1.1.1
+
+++D2 will give 200-254
+
+conf t
+vlan 10
+ name homevlanmay12
+exit
+ ip dhcp exclude-add 10.2.1.1 10.2.1.199
+ ip dhcp pool vlan10
+ network 10.2.1.1 255.255.255.0
+ default-router 10.2.1.2
+ domain-name rivanit.com
+ dns-server 8.8.8.8
+ option 150 ip 1.1.1.1
+
+
+
+
+
